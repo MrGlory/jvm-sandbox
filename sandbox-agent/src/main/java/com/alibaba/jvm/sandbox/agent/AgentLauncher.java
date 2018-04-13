@@ -242,7 +242,7 @@ public class AgentLauncher {
         final String coreFeatureString = toFeatureString(featureMap);
 
         try {
-
+            System.out.println(getSandboxHome(featureMap));
             // 将Spy注入到BootstrapClassLoader
             inst.appendToBootstrapClassLoaderSearch(new JarFile(new File(
                     getSandboxSpyJarPath(getSandboxHome(featureMap))
@@ -260,6 +260,7 @@ public class AgentLauncher {
             final Class<?> classOfConfigure = agentLoader.loadClass(CLASS_OF_CORE_CONFIGURE);
 
             // 反序列化成CoreConfigure类实例
+            // 合并外部配置文件中的配置信息
             final Object objectOfCoreConfigure = classOfConfigure.getMethod("toConfigure", String.class, String.class)
                     .invoke(null, coreFeatureString, propertiesFilePath);
 

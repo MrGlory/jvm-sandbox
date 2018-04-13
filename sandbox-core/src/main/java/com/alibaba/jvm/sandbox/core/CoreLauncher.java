@@ -58,10 +58,13 @@ public class CoreLauncher {
         final Class<?> vmdClass = loader.loadClass("com.sun.tools.attach.VirtualMachineDescriptor");
         final Class<?> vmClass = loader.loadClass("com.sun.tools.attach.VirtualMachine");
 
+        //获取jvm实例列表
         Object attachVmdObj = null;
         for (Object obj : (List<?>) vmClass.getMethod("list", (Class<?>[]) null).invoke(null, (Object[]) null)) {
+            //根据传入待绑定jvm的进程id匹配目标jvm实例
             if ((vmdClass.getMethod("id", (Class<?>[]) null).invoke(obj, (Object[]) null))
                     .equals(targetJvmPid)) {
+                //获取待匹配目标jvm实例
                 attachVmdObj = obj;
             }
         }
@@ -70,10 +73,13 @@ public class CoreLauncher {
         try {
             // 使用 attach(String pid) 这种方式
             if (null == attachVmdObj) {
+                //如果上方代码无法获取到jvm实例，通过attach(String pid)的形式再次重试，ps:此处感觉多余。
                 vmObj = vmClass.getMethod("attach", String.class).invoke(null, targetJvmPid);
             } else {
+                //获得待attach的jvm实例后，通过jvmti接口连接。
                 vmObj = vmClass.getMethod("attach", vmdClass).invoke(null, attachVmdObj);
             }
+            //将agent代理加载到目标jvm实例中，此处vmObj可能为null，从而导致异常
             vmClass
                     .getMethod("loadAgent", String.class, String.class)
                     .invoke(vmObj, agentJarPath, cfg);
